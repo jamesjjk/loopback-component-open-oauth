@@ -147,7 +147,6 @@ module.exports =
 
     RefreshToken.findOne { refreshToken: refreshToken }
 
-
   getClientApplicationByKey: (clientId, clientKey) ->
     console.log 'in getClient (appId: ' + clientId + ', clientKey: ' + clientKey + ')'
 
@@ -168,3 +167,13 @@ module.exports =
     ClientApplication = loopback.getModel 'ClientApplication'
 
     ClientApplication.findById clientId
+
+  setAccessTokenContext: (accessToken) ->
+    console.log 'in setAccessTokenContext (accessToken: ' + accessToken + ')'
+
+    ctx = loopback.getCurrentContext()
+
+    if ctx
+      ctx.set 'accessToken', accessToken
+
+    return

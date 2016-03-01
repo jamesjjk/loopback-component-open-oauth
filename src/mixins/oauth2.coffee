@@ -22,6 +22,7 @@ module.exports = (Model, options) ->
     allowEmptyState
     authorizationCodeLifetime
     accessTokenLifetime
+    currentUserLiteral
     refreshTokenLifetime } = options
 
   Model.authenticate = (req, res, callback) ->
@@ -71,6 +72,7 @@ module.exports = (Model, options) ->
 
     authorizeOptions =
       modelName: Model.modelName
+      currentUserLiteral: currentUserLiteral or 'me'
       allowEmptyState: allowEmptyState or true
       authorizationCodeLifetime: authorizationCodeLifetime or 5 * 60
 

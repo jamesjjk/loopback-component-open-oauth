@@ -27,7 +27,7 @@ ModelHelpers = require '../helpers'
 ###
 
 class exports.AuthenticateHandler
-  constructor: ({ @scope, @throwErrors, @addAcceptedScopesHeader, @validateScope, @addAuthorizedScopesHeader, @allowBearerTokensInQueryString }) ->
+  constructor: ({ @scope, @throwErrors, @addAcceptedScopesHeader, @validateScope, @addAuthorizedScopesHeader, @allowBearerTokensInQueryString, @currentUserLiteral }) ->
     if @scope and @addAcceptedScopesHeader is undefined
       throw new InvalidArgumentError 'ACCPTSCOPEHEADER'
 
@@ -36,6 +36,9 @@ class exports.AuthenticateHandler
 
     if @scope and not ModelHelpers.validateScope
       throw new InvalidArgumentError 'VALIDSCOPE'
+
+    if typeof @currentUserLiteral is 'string'
+      @currentUserLiteral = @currentUserLiteral.replace /[.*+?^${}()|[\]\\]/g, '\\$&'
 
     return
 
@@ -58,6 +61,8 @@ class exports.AuthenticateHandler
       .tap (token) ->
         return if not @scope
         @validateScope token
+      .tap (token) ->
+        @rewriteUserLiteral request, token, @currentUserLiteral
       .tap (token) ->
         @updateResponse response, token
       .catch (e) ->
@@ -164,5 +169,22 @@ class exports.AuthenticateHandler
 
     if @scope and @addAuthorizedScopesHeader
       response.set 'X-OAuth-Scopes', accessToken.scope
+
+    ModelHelpers.setAccessTokenContext accessToken
+
+    return
+
+  ###
+  # Rewrite the url to replace current user literal with the logged in user id
+  ###
+
+  rewriteUserLiteral: (request, accessToken, currentUserLiteral) ->
+    if accessToken.userId and currentUserLiteral
+      urlBeforeRewrite = request.url
+
+      request.url = request.url.replace(new RegExp('/' + currentUserLiteral + '(/|$|\\?)', 'g'), '/' + accessToken.userId + '$1')
+
+      if request.url isnt urlBeforeRewrite
+        console.log 'request.url has been rewritten from %s to %s', urlBeforeRewrite, request.url
 
     return
