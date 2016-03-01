@@ -7,34 +7,32 @@ validate = require '../validator/is'
 
 { InvalidArgumentError } = require '../errors/invalid-argument-error'
 
-ModelHelpers = require '../helpers'
-
 ###*
 # Generate access token.
 ###
 
 class exports.AbstractGrantType
-  constructor: ({ @accessTokenLifetime, @refreshTokenLifetime }) ->
+  constructor: ({ @accessTokenLifetime, @refreshTokenLifetime, @modelHelpers }) ->
     if not @accessTokenLifetime
       throw new InvalidArgumentError 'ACCESSLIFE'
 
     return
 
   generateAccessToken: ->
-    if ModelHelpers.generateAccessToken
-      return ModelHelpers.generateAccessToken()
+    if @modelHelpers.generateAccessToken
+      return @modelHelpers.generateAccessToken()
 
-    ModelHelpers.generateRandomToken()
+    @modelHelpers.generateRandomToken()
 
   ###*
   # Generate refresh token.
   ###
 
   generateRefreshToken: ->
-    if ModelHelpers.generateRefreshToken
-      return ModelHelpers.generateRefreshToken()
+    if @modelHelpers.generateRefreshToken
+      return @modelHelpers.generateRefreshToken()
 
-    ModelHelpers.generateRandomToken()
+    @modelHelpers.generateRandomToken()
 
   ###*
   # Get access token expiration date.

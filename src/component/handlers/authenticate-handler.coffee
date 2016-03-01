@@ -20,21 +20,19 @@ Promise = require 'bluebird'
 BearerTokenType = require '../token-types/bearer-token-type'
 MacTokenType = require '../token-types/mac-token-type'
 
-ModelHelpers = require '../helpers'
-
 ###*
 # Authenticate Handler.
 ###
 
 class exports.AuthenticateHandler
-  constructor: ({ @scope, @throwErrors, @addAcceptedScopesHeader, @validateScope, @addAuthorizedScopesHeader, @allowBearerTokensInQueryString, @currentUserLiteral }) ->
+  constructor: ({ @scope, @throwErrors, @addAcceptedScopesHeader, @validateScope, @addAuthorizedScopesHeader, @allowBearerTokensInQueryString, @currentUserLiteral, @modelHelpers }) ->
     if @scope and @addAcceptedScopesHeader is undefined
       throw new InvalidArgumentError 'ACCPTSCOPEHEADER'
 
     if @scope and @addAuthorizedScopesHeader is undefined
       throw new InvalidArgumentError 'AUTHSCOPEHEADER'
 
-    if @scope and not ModelHelpers.validateScope
+    if @scope and not @modelHelpers.validateScope
       throw new InvalidArgumentError 'VALIDSCOPE'
 
     if typeof @currentUserLiteral is 'string'
@@ -107,7 +105,7 @@ class exports.AuthenticateHandler
   ###
 
   getAccessToken: (token) ->
-    ModelHelpers.getAccessToken token
+    @modelHelpers.getAccessToken token
       .then (accessToken) ->
         if not accessToken
           throw new InvalidTokenError 'INVALID'
@@ -115,7 +113,7 @@ class exports.AuthenticateHandler
         return accessToken
 
   getUserById: (token) ->
-    ModelHelpers.getUserById token
+    @modelHelpers.getUserById token
       .then (user) ->
         if not user
           throw new InvalidTokenError 'INVALID'
@@ -153,7 +151,7 @@ class exports.AuthenticateHandler
       @scope
     ]
 
-    ModelHelpers.validateScope scopeData
+    @modelHelpers.validateScope scopeData
       .then (scope) ->
         if not scope
           throw new InvalidScopeError 'INVALID'
@@ -170,7 +168,7 @@ class exports.AuthenticateHandler
     if @scope and @addAuthorizedScopesHeader
       response.set 'X-OAuth-Scopes', accessToken.scope
 
-    ModelHelpers.setAccessTokenContext accessToken
+    @modelHelpers.setAccessTokenContext accessToken
 
     return
 

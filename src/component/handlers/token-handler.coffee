@@ -21,8 +21,6 @@ validate = require '../validator/is'
 { Request } = require '../request'
 { Response } = require '../response'
 
-ModelHelpers = require '../helpers'
-
 ###*
 # Grant types.
 ###
@@ -46,7 +44,7 @@ tokenTypes =
 ###
 
 class exports.TokenHandler
-  constructor: ({ @accessTokenLifetime, @refreshTokenLifetime, extendedGrantTypes }) ->
+  constructor: ({ @accessTokenLifetime, @refreshTokenLifetime, extendedGrantTypes, @modelHelpers }) ->
     if not accessTokenLifetime
       throw new InvalidArgumentError 'AUTHCODELIFE'
 
@@ -110,7 +108,7 @@ class exports.TokenHandler
 
     clientCredentials = [ clientId, clientSecret ]
 
-    ModelHelpers.getClientApplicationByKey clientCredentials
+    @modelHelpers.getClientApplicationByKey clientCredentials
       .then (client) ->
         if not client
           throw new InvalidClientError 'INVALID'
@@ -190,6 +188,7 @@ class exports.TokenHandler
     options =
       accessTokenLifetime: accessTokenLifetime
       refreshTokenLifetime: refreshTokenLifetime
+      modelHelpers: @modelHelpers
 
     new grantType(options).handle request, client
 

@@ -7,40 +7,49 @@ validateScope = require './validator/scope'
 
 promisedRandomBytes = promisify randomBytes
 
-module.exports =
+class ModelHelpers
+  constructor: ({ @userModel, @tokenModel, @authModel, @appModel, @refreshModel }) ->
+    console.log """in ModelHelpers (
+      User: #{ @userModel },
+      AccessToken: #{ @tokenModel },
+      AuthorizationCode: #{ @authModel },
+      Application: #{ @appModel },
+      RefreshToken: #{ @refreshModel }
+      )
+      """
 
   getAccessToken: (bearerToken) ->
     console.log 'in getAccessToken (bearerToken: ' + bearerToken + ')'
 
-    TokenModel = loopback.getModel 'accessToken'
+    TokenModel = loopback.getModel @tokenModel
 
     TokenModel.findById bearerToken
 
   getAuthorizationCode: (code) ->
     console.log 'in getAuthorizationCode (code: ' + code + ')'
 
-    AuthorizationCode = loopback.getModel 'AuthorizationCode'
+    AuthorizationCode = loopback.getModel @authModel
 
     AuthorizationCode.findById code
 
   saveAuthorizationCode: (code) ->
     console.log 'in saveAuthorizationCode (code: ' + code + ')'
 
-    AuthorizationCode = loopback.getModel 'AuthorizationCode'
+    AuthorizationCode = loopback.getModel @authModel
 
     AuthorizationCode.create code
 
   revokeAuthorizationCode: (code) ->
     console.log 'in revokeAuthorizationCode (code: ' + code + ')'
 
-    AuthorizationCode = loopback.getModel 'AuthorizationCode'
+    AuthorizationCode = loopback.getModel @authModel
 
     AuthorizationCode.deleteById code
 
   getUserById: (accessToken) ->
     console.log 'in getUserById (userId: ' + accessToken.userId + ')'
 
-    UserMember = loopback.getModel 'UserMember'
+    UserMember = loopback.getModel @userModel
     userId = accessToken.userId.replace /\"/g, ''
 
     UserMember.findById userId
@@ -53,7 +62,7 @@ module.exports =
   grantTypeAllowed: (appId, grantType) ->
     console.log 'in grantTypeAllowed (appId: ' + appId + ', grantType: ' + grantType + ')'
 
-    ClientApplication = loopback.getModel 'ClientApplication'
+    ClientApplication = loopback.getModel @appModel
 
     if grantType is 'password'
 
@@ -65,7 +74,7 @@ module.exports =
   createToken: (token, appId, expires, userId) ->
     console.log 'in saveAccessToken (token: ' + token + ', appId: ' + appId + ', userId: ' + userId + ', expires: ' + expires + ')'
 
-    AccessToken = loopback.getModel 'AccessToken'
+    AccessToken = loopback.getModel @tokenModel
 
     accessTokenData =
       accessToken: token
@@ -80,7 +89,7 @@ module.exports =
   ###
 
   getUser: (request) ->
-    User = loopback.getModel 'User'
+    User = loopback.getModel @userModel
 
     if not request.body.username
       throw new InvalidRequestError 'Missing parameter: `username`'
@@ -111,7 +120,7 @@ module.exports =
   revokeRefreshToken: (token) ->
     console.log 'in revokeRefreshToken (token: ' + token + ')'
 
-    RefreshToken = loopback.getModel 'RefreshToken'
+    RefreshToken = loopback.getModel @refreshModel
 
     RefreshToken.deleteById token
 
@@ -122,7 +131,7 @@ module.exports =
   saveRefreshToken: (token, appId, expires, userId) ->
     console.log 'in saveRefreshToken (token: ' + token + ', appId: ' + appId + ', userId: ' + userId + ', expires: ' + expires + ')'
 
-    RefreshToken = loopback.getModel 'RefreshToken'
+    RefreshToken = loopback.getModel @refreshModel
 
     refreshTokenData =
       refreshToken: token
@@ -143,14 +152,14 @@ module.exports =
 
     console.log 'in getRefreshToken (refreshToken: ' + refreshToken + ')'
 
-    RefreshToken = loopback.getModel 'RefreshToken'
+    RefreshToken = loopback.getModel @refreshModel
 
     RefreshToken.findOne { refreshToken: refreshToken }
 
   getClientApplicationByKey: (clientId, clientKey) ->
     console.log 'in getClient (appId: ' + clientId + ', clientKey: ' + clientKey + ')'
 
-    ClientApplication = loopback.getModel 'ClientApplication'
+    ClientApplication = loopback.getModel @appModel
 
     if clientKey == null
       return ClientApplication.findOne { id: appId }
@@ -164,7 +173,7 @@ module.exports =
   getClientApplicationById: (clientId) ->
     console.log 'in getClientApplication (appId: ' + clientId + ')'
 
-    ClientApplication = loopback.getModel 'ClientApplication'
+    ClientApplication = loopback.getModel @appModel
 
     ClientApplication.findById clientId
 
@@ -177,3 +186,5 @@ module.exports =
       ctx.set 'accessToken', accessToken
 
     return
+
+module.exports = ModelHelpers

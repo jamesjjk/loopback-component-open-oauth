@@ -9,8 +9,6 @@ Promise = require 'bluebird'
 { InvalidArgumentError } = require '../errors/invalid-argument-error'
 { InvalidGrantError } = require '../errors/invalid-grant-error'
 
-ModelHelpers = require '../helpers'
-
 ###*
 # Constructor.
 ###
@@ -43,7 +41,7 @@ class ClientCredentialsGrantType extends AbstractGrantType
         @saveToken user, client, scope
 
   getUserFromClient = (client) ->
-    ModelHelpers.getUserFromClient client
+    @modelHelpers.getUserFromClient client
       .then (user) ->
         if !user
           throw new InvalidGrantError 'Invalid grant: user credentials are invalid'
@@ -67,6 +65,6 @@ class ClientCredentialsGrantType extends AbstractGrantType
           accessTokenExpiresAt: accessTokenExpiresAt
           scope: scope
 
-        ModelHelpers.createToken token, client, user
+        @modelHelpers.createToken token, client, user
 
 module.exports = ClientCredentialsGrantType

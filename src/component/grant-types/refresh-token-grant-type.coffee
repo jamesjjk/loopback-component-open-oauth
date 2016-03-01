@@ -13,8 +13,6 @@ validate = require '../validator/is'
 
 { ServerError } = require '../errors/server-error'
 
-ModelHelpers = require '../helpers'
-
 ###*
 # Constructor.
 ###
@@ -38,10 +36,9 @@ class RefreshTokenGrantType extends AbstractGrantType
     if not client
       throw new InvalidArgumentError 'CLIENT'
 
-    Promise
+    Promise.bind this
       .then ->
-        ModelHelpers.getRefreshToken request, client
-      .bind this
+        @getRefreshToken request, client
       .tap (token) ->
         @revokeRefreshToken token
       .then (token) ->
@@ -58,7 +55,7 @@ class RefreshTokenGrantType extends AbstractGrantType
   ###
 
   revokeRefreshToken: (refreshToken) ->
-    ModelHelpers.revokeRefreshToken refreshToken
+    @modelHelpers.revokeRefreshToken refreshToken
       .then (code) ->
         if not code
           throw new InvalidGrantError 'Invalid grant: refresh token is invalid'
@@ -92,6 +89,6 @@ class RefreshTokenGrantType extends AbstractGrantType
           refreshTokenExpiresAt: refreshTokenExpiresAt
           scope: scope
 
-        ModelHelpers.createToken token, client, user
+        @modelHelpers.createToken token, client, user
 
 module.exports = RefreshTokenGrantType

@@ -11,8 +11,6 @@ validate = require '../validator/is'
 { InvalidGrantError } = require '../errors/invalid-grant-error'
 { InvalidRequestError } = require '../errors/invalid-request-error'
 
-ModelHelpers = require '../helpers'
-
 ###*
 # Constructor.
 ###
@@ -44,8 +42,8 @@ class PasswordGrantType extends AbstractGrantType
       .then (user) ->
         @saveToken user, client, scope
 
-  getUser: ({ body }) ->
-    { username, password } = body
+  getUser: (request) ->
+    { username, password } = request.body
 
     if not username
       throw new InvalidRequestError 'Missing parameter: `username`'
@@ -59,7 +57,7 @@ class PasswordGrantType extends AbstractGrantType
     if not validate.uchar password
       throw new InvalidRequestError 'Invalid parameter: `password`'
 
-    ModelHelpers.getUser [ username, password ]
+    @modelHelpers.getUser request
       .then (user) ->
         if not user
           throw new InvalidGrantError 'Invalid grant: user credentials are invalid'
@@ -87,6 +85,6 @@ class PasswordGrantType extends AbstractGrantType
           refreshTokenExpiresAt: refreshTokenExpiresAt
           scope: scope
 
-        ModelHelpers.createToken token, client, user
+        @modelHelpers.createToken token, client, user
 
 module.exports = PasswordGrantType

@@ -13,8 +13,6 @@ validate = require '../validator/is'
 
 { ServerError } = require '../errors/server-error'
 
-ModelHelpers = require '../helpers'
-
 ###*
 # Constructor.
 ###
@@ -59,7 +57,7 @@ class AuthorizationCodeGrantType extends AbstractGrantType
     if !validate.vschar(request.body.code)
       throw new InvalidRequestError 'Invalid parameter: `code`'
 
-    ModelHelpers.getAuthorizationCode request.body.code
+    @modelHelpers.getAuthorizationCode request.body.code
       .then (code) ->
         if !code
           throw new InvalidGrantError 'Invalid grant: authorization code is invalid'
@@ -120,7 +118,7 @@ class AuthorizationCodeGrantType extends AbstractGrantType
   ###
 
   revokeAuthorizationCode: (authCode) ->
-    ModelHelpers.revokeAuthorizationCode authCode
+    @modelHelpers.revokeAuthorizationCode authCode
       .then (code) ->
         if !code
           throw new InvalidGrantError 'Invalid grant: authorization code is invalid'
@@ -152,6 +150,6 @@ class AuthorizationCodeGrantType extends AbstractGrantType
           refreshToken: refreshToken
           scope: scope
 
-        ModelHelpers.createToken token, client, user
+        @modelHelpers.createToken token, client, user
 
 module.exports = AuthorizationCodeGrantType

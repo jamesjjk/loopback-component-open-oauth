@@ -24,8 +24,6 @@ url = require 'url'
 { Request } = require '../request'
 { Response } = require '../response'
 
-ModelHelpers = require '../helpers'
-
 ###*
 # Response types.
 ###
@@ -40,7 +38,7 @@ responseTypes =
 
 class exports.AuthorizeHandler
   constructor: (options = {}) ->
-    { @authenticateHandler, @authorizationCodeLifetime, @allowEmptyState } = options
+    { @authenticateHandler, @authorizationCodeLifetime, @allowEmptyState, @modelHelpers } = options
 
     if @authenticateHandler and not @authenticateHandler.handle
       throw new InvalidArgumentError 'HANDLE'
@@ -103,10 +101,10 @@ class exports.AuthorizeHandler
   ###
 
   generateAuthorizationCode: ->
-    if ModelHelpers.generateAuthorizationCode
-      return ModelHelpers.generateAuthorizationCode()
+    if @modelHelpers.generateAuthorizationCode
+      return @modelHelpers.generateAuthorizationCode()
 
-    ModelHelpers.generateRandomToken()
+    @modelHelpers.generateRandomToken()
 
   ###*
   # Get authorization code lifetime.
@@ -135,7 +133,7 @@ class exports.AuthorizeHandler
     if redirectUri and not validate.uri redirectUri
       throw new InvalidRequestError 'REDIRECT'
 
-    ModelHelpers.getClientApplicationById clientId
+    @modelHelpers.getClientApplicationById clientId
       .then (client) ->
         if not client
           throw new InvalidClientError 'CLIENTCREDS'
@@ -217,7 +215,7 @@ class exports.AuthorizeHandler
     if scope
       code.scopes = [ scope ]
 
-    ModelHelpers.saveAuthorizationCode code
+    @modelHelpers.saveAuthorizationCode code
 
   ###*
   # Get response type.

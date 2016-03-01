@@ -2,6 +2,8 @@
 # Module dependencies.
 ###
 
+{ defaults } = require 'lodash'
+
 { AuthenticateHandler } = require '../component/oauth/handlers/authenticate-handler'
 { AuthorizeHandler } = require '../component/oauth/handlers/authorize-handler'
 
@@ -9,6 +11,8 @@
 
 { Request } = require '../component/oauth/request'
 { Response } = require '../component/oauth/response'
+
+ModelHelpers = require '../helpers'
 
 ###*
 # Authenticate a token.
@@ -23,14 +27,24 @@ module.exports = (Model, options) ->
     authorizationCodeLifetime
     accessTokenLifetime
     currentUserLiteral
-    refreshTokenLifetime } = options
+    refreshTokenLifetime
+    models } = options
+
+  models = defaults {}, models,
+    userModel: 'User'
+    tokenModel: 'AccessToken'
+    authModel: 'AuthorizationCode'
+    appModel: 'ClientApplication'
+    refreshModel: 'RefreshToken'
+
+  modelHelpers = new ModelHelpers models
 
   Model.authenticate = (req, res, callback) ->
     request = new Request req
     response = new Response res
 
     authenticateOptions =
-      modelName: Model.modelName
+      modelHelpers: modelHelpers
       addAcceptedScopesHeader: addAcceptedScopesHeader or true
       addAuthorizedScopesHeader: addAuthorizedScopesHeader or true
       allowBearerTokensInQueryString: allowBearerTokensInQueryString or false
@@ -71,7 +85,7 @@ module.exports = (Model, options) ->
     response = new Response res
 
     authorizeOptions =
-      modelName: Model.modelName
+      modelHelpers: modelHelpers
       currentUserLiteral: currentUserLiteral or 'me'
       allowEmptyState: allowEmptyState or true
       authorizationCodeLifetime: authorizationCodeLifetime or 5 * 60
@@ -134,7 +148,7 @@ module.exports = (Model, options) ->
       else accessTokenLifetime
 
     tokenOptions =
-      modelName: Model.modelName
+      modelHelpers: modelHelpers
       accessTokenLifetime: accessTokenLifetime or 14 * 24 * 3600
       refreshTokenLifetime: refreshTokenLifetime or 60 * 60 * 24 * 14
 
