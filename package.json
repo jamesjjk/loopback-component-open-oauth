@@ -1,0 +1,27 @@
+{
+  "name": "loopback-component-open-oauth",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "author": {
+    "name": "BoLaMN",
+    "url": "https://github.com/BoLaMN"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BoLaMN/loopback-component-open-oauth"
+  },
+  "license": "MIT",
+  "scripts": {},
+  "devDependencies": {
+    "coffee-script": "1.10.0",
+    "grunt": "^0.4.5",
+    "grunt-contrib-clean": "~0.6.0",
+    "grunt-contrib-coffee": "~0.13.0",
+    "load-grunt-tasks": "^3.2.0",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-cson": "^0.16.0"
+  },
+  "dependencies": {
+    "loopback": "^2.26.0"
+  }
+}

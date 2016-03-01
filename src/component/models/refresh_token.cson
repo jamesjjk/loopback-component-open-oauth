@@ -1,0 +1,12 @@
+name: "RefreshToken"
+plural: "refresh_token"
+
+base: "AccessToken"
+
+properties: {}
+relations: {}
+
+acls: []
+
+methods: {}
+validations: []
