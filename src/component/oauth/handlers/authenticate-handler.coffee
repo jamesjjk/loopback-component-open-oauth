@@ -47,6 +47,11 @@ class exports.AuthenticateHandler
     if not response instanceof Response
       throw new InvalidArgumentError 'RESPONSE'
 
+    tokenExists = @modelHelpers.checkAccessTokenContext request
+
+    if tokenExists
+      return Promise.resolve()
+
     Promise.bind this
       .then ->
         @getTokenFromRequest request
@@ -56,13 +61,13 @@ class exports.AuthenticateHandler
         @getUserById token
       .tap (token) ->
         @validateAccessToken token
-      .tap (token) ->
-        return if not @scope
-        @validateScope token
+      #.tap (token) ->
+      #  return if not @scope
+      #  @validateScope token
       .tap (token) ->
         @rewriteUserLiteral request, token, @currentUserLiteral
       .tap (token) ->
-        @updateResponse response, token
+        @updateResponse request, response, token
       .catch (e) ->
         # Include the "WWW-Authenticate" response header field if the client
         # lacks any authentication information.
@@ -96,7 +101,8 @@ class exports.AuthenticateHandler
       .bind this
       .spread (bearerToken, macToken) ->
         if not bearerToken or macToken
-          throw new UnauthorizedRequestError 'NOAUTH'
+          #throw new UnauthorizedRequestError 'NOAUTH'
+          return
 
         bearerToken or macToken
 
@@ -105,6 +111,9 @@ class exports.AuthenticateHandler
   ###
 
   getAccessToken: (token) ->
+    if not token
+      return
+
     @modelHelpers.getAccessToken token
       .then (accessToken) ->
         if not accessToken
@@ -113,6 +122,9 @@ class exports.AuthenticateHandler
         return accessToken
 
   getUserById: (token) ->
+    if not token
+      return
+
     @modelHelpers.getUserById token
       .then (user) ->
         if not user
@@ -131,6 +143,9 @@ class exports.AuthenticateHandler
   ###
 
   validateAccessToken: (accessToken) ->
+    if not accessToken
+      return
+
     { accessTokenExpiresAt } = accessToken
 
     if accessTokenExpiresAt and not accessTokenExpiresAt instanceof Date
@@ -146,6 +161,9 @@ class exports.AuthenticateHandler
   ###
 
   validateScope: (accessToken) ->
+    if not accessToken
+      return
+
     scopeData = [
       accessToken
       @scope
@@ -161,14 +179,17 @@ class exports.AuthenticateHandler
   # Update response.
   ###
 
-  updateResponse: (response, accessToken) ->
+  updateResponse: (request, response, accessToken) ->
+    if not accessToken
+      return
+
     if @scope and @addAcceptedScopesHeader
       response.set 'X-Accepted-OAuth-Scopes', @scope
 
     if @scope and @addAuthorizedScopesHeader
       response.set 'X-OAuth-Scopes', accessToken.scope
 
-    @modelHelpers.setAccessTokenContext accessToken
+    @modelHelpers.setAccessTokenContext request, accessToken
 
     return
 
@@ -177,6 +198,9 @@ class exports.AuthenticateHandler
   ###
 
   rewriteUserLiteral: (request, accessToken, currentUserLiteral) ->
+    if not accessToken
+      return
+
     if accessToken.userId and currentUserLiteral
       urlBeforeRewrite = request.url
 

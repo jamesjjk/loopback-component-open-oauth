@@ -2,7 +2,7 @@ debug = require('debug')('loopback:oauth2:scope')
 pathToRegexp = require('path-to-regexp')
 Promise = require 'bluebird'
 
-{ InvalidScopeError } = require './errors/invalid-scope-error'
+{ InvalidScopeError } = require '../errors/invalid-scope-error'
 
 ###*
 # Validate if the oAuth 2 scope is satisfied

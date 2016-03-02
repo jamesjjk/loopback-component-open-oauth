@@ -38,8 +38,8 @@ class BearerTokenType extends AbstractTokenType
 
   @getTokenFromRequest: (request) ->
     headerToken = request.get 'Authorization'
-    queryToken = request.query.access_token
-    bodyToken = request.body.access_token
+    queryToken = request.query?.access_token
+    bodyToken = request.body?.access_token
 
     if ! !headerToken + ! !queryToken + ! !bodyToken > 1
       return

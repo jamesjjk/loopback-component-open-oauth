@@ -2,7 +2,7 @@ loopback = require 'loopback'
 validate = require './validator/is'
 validateScope = require './validator/scope'
 
-{ promisify } = require 'bluebird'
+{ promisify, resolve } = require 'bluebird'
 { randomBytes, createHash } = require 'crypto'
 
 promisedRandomBytes = promisify randomBytes
@@ -48,6 +48,9 @@ class ModelHelpers
 
   getUserById: (accessToken) ->
     console.log 'in getUserById (userId: ' + accessToken.userId + ')'
+
+    if not accessToken?.userId
+      return resolve()
 
     UserMember = loopback.getModel @userModel
     userId = accessToken.userId.replace /\"/g, ''
@@ -177,14 +180,24 @@ class ModelHelpers
 
     ClientApplication.findById clientId
 
-  setAccessTokenContext: (accessToken) ->
+  setAccessTokenContext: (request, accessToken) ->
     console.log 'in setAccessTokenContext (accessToken: ' + accessToken + ')'
+
+    request.accessToken = accessToken
 
     ctx = loopback.getCurrentContext()
 
     if ctx
       ctx.set 'accessToken', accessToken
 
-    return
+  checkAccessTokenContext: (request) ->
+    console.log 'in checkAccessTokenContext'
+
+    ctx = loopback.getCurrentContext()
+
+    if ctx
+      token = ctx.get 'accessToken'
+
+    token or request.accessToken
 
 module.exports = ModelHelpers

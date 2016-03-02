@@ -18,35 +18,24 @@ setupCors = (adminApp, remotes) ->
 
   return
 
-mountAdmin = (loopbackApplication, adminApp, opts) ->
-  resourcePath = opts.resourcePath
-
-  if resourcePath[0] isnt '/'
-    resourcePath = '/' + resourcePath
-
-  remotes = loopbackApplication.remotes()
-
-  setupCors adminApp, remotes
-
-  return
-
 routes = (loopbackApplication, options) ->
   loopback = loopbackApplication.loopback
 
   options = defaults({}, options,
-    mountPath: '/admin'
+    mountPath: '/oauth'
     apiInfo: loopbackApplication.get('apiInfo') or {})
 
   router = new loopback.Router()
 
-  mountAdmin loopbackApplication, router, options
+  remotes = loopbackApplication.remotes()
+  setupCors loopbackApplication, remotes
 
   router.use loopback.static STATIC_ROOT
 
   router
 
 module.exports = (loopbackApplication, options) ->
-  options = defaults {}, options, mountPath: '/admin'
+  options = defaults {}, options, mountPath: '/oauth'
 
   loopbackApplication.use options.mountPath, routes(loopbackApplication, options)
   loopbackApplication.set 'loopback-component-open-oauth', options

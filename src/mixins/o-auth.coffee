@@ -12,7 +12,7 @@
 { Request } = require '../component/oauth/request'
 { Response } = require '../component/oauth/response'
 
-ModelHelpers = require '../helpers'
+ModelHelpers = require '../component/oauth/helpers'
 
 ###*
 # Authenticate a token.
@@ -31,7 +31,7 @@ module.exports = (Model, options) ->
     models } = options
 
   models = defaults {}, models,
-    userModel: 'User'
+    userModel: Model.modelName
     tokenModel: 'AccessToken'
     authModel: 'AuthorizationCode'
     appModel: 'ClientApplication'
@@ -39,42 +39,24 @@ module.exports = (Model, options) ->
 
   modelHelpers = new ModelHelpers models
 
-  Model.authenticate = (req, res, callback) ->
-    request = new Request req
-    response = new Response res
+  ###*
+  # Authenticate a request.
+  ###
 
-    authenticateOptions =
-      modelHelpers: modelHelpers
-      addAcceptedScopesHeader: addAcceptedScopesHeader or true
-      addAuthorizedScopesHeader: addAuthorizedScopesHeader or true
-      allowBearerTokensInQueryString: allowBearerTokensInQueryString or false
+  Model.on 'attached', (server) ->
+    server.middleware 'auth', (req, res, callback) ->
+      request = new Request req
+      response = new Response res
 
-    new AuthenticateHandler authenticateOptions
-      .handle request, response
-      .nodeify callback
+      authenticateOptions =
+        modelHelpers: modelHelpers
+        addAcceptedScopesHeader: addAcceptedScopesHeader or true
+        addAuthorizedScopesHeader: addAuthorizedScopesHeader or true
+        allowBearerTokensInQueryString: allowBearerTokensInQueryString or false
 
-  Model.remoteMethod 'authenticate',
-    description: 'authenticate a user with username/email and password.'
-    accepts: [
-      {
-        arg: 'req'
-        type: 'object'
-        required: true
-        http: source: 'req'
-      }
-      {
-        arg: 'res'
-        type: 'object'
-        required: true
-        http: source: 'res'
-      }
-    ]
-    returns:
-      arg: 'accessToken'
-      type: 'object'
-      root: true
-      description: 'The response body contains properties of the AccessToken created on login.\n' + 'Depending on the value of `include` parameter, the body may contain ' + 'additional properties:\n\n' + '  - `user` - `{User}` - Data of the currently logged in user. (`include=user`)\n\n'
-    http: verb: 'post'
+      new AuthenticateHandler authenticateOptions
+        .handle request, response
+        .nodeify callback
 
   ###*
   # Authorize a request.
