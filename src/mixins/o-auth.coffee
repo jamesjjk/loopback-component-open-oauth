@@ -32,7 +32,7 @@ module.exports = (Model, options) ->
 
   models = defaults {}, models,
     userModel: Model.modelName
-    tokenModel: 'AccessToken'
+    tokenModel: 'accessToken'
     authModel: 'AuthorizationCode'
     appModel: 'ClientApplication'
     refreshModel: 'RefreshToken'

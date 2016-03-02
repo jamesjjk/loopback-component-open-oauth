@@ -1,3 +1,5 @@
+debug = require('debug')('loopback:oauth:helpers')
+
 loopback = require 'loopback'
 validate = require './validator/is'
 validateScope = require './validator/scope'
@@ -9,7 +11,7 @@ promisedRandomBytes = promisify randomBytes
 
 class ModelHelpers
   constructor: ({ @userModel, @tokenModel, @authModel, @appModel, @refreshModel }) ->
-    console.log """in ModelHelpers (
+    debug """in ModelHelpers (
       User: #{ @userModel },
       AccessToken: #{ @tokenModel },
       AuthorizationCode: #{ @authModel },
@@ -28,41 +30,42 @@ class ModelHelpers
     modelType
 
   getAccessToken: (bearerToken) ->
-    console.log 'in getAccessToken (bearerToken: ' + bearerToken + ')'
+    debug "in getAccessToken (bearerToken: #{ bearerToken })"
 
     TokenModel = loopback.getModel @tokenModel
 
     TokenModel.findById bearerToken
 
   getAuthorizationCode: (code) ->
-    console.log 'in getAuthorizationCode (code: ' + code + ')'
+    debug "in getAuthorizationCode (code: #{ code })"
 
     AuthorizationCode = loopback.getModel @authModel
 
     AuthorizationCode.findById code
 
   saveAuthorizationCode: (code) ->
-    console.log 'in saveAuthorizationCode (code: ' + code + ')'
+    debug "in saveAuthorizationCode (code: #{ code })"
 
     AuthorizationCode = loopback.getModel @authModel
 
     AuthorizationCode.create code
 
   revokeAuthorizationCode: (code) ->
-    console.log 'in revokeAuthorizationCode (code: ' + code + ')'
+    debug "in revokeAuthorizationCode (code: #{ code })"
 
     AuthorizationCode = loopback.getModel @authModel
 
     AuthorizationCode.deleteById code
 
   getUserById: (accessToken) ->
-    console.log 'in getUserById (userId: ' + accessToken.userId + ')'
+    userId = accessToken.userId.replace /\"/g, ''
+
+    debug "in getUserById (userId: #{ userId })"
 
     if not accessToken?.userId
       return resolve()
 
     UserMember = loopback.getModel @userModel
-    userId = accessToken.userId.replace /\"/g, ''
 
     UserMember.findById userId
 
@@ -72,7 +75,7 @@ class ModelHelpers
         createHash('sha1').update(buffer).digest 'hex'
 
   grantTypeAllowed: (appId, grantType) ->
-    console.log 'in grantTypeAllowed (appId: ' + appId + ', grantType: ' + grantType + ')'
+    debug "in grantTypeAllowed (appId: #{ appId }, grantType: #{ grantType })"
 
     ClientApplication = loopback.getModel @appModel
 
@@ -84,7 +87,9 @@ class ModelHelpers
       ClientApplication.findById query
 
   createToken: (token, appId, expires, userId) ->
-    console.log 'in saveAccessToken (token: ' + token + ', appId: ' + appId + ', userId: ' + userId + ', expires: ' + expires + ')'
+    userId = userId.replace /\"/g, ''
+
+    debug "in saveAccessToken (token: #{ token }, appId: #{ appId }, userId: #{ userId }, expires: #{ expires })"
 
     AccessToken = loopback.getModel @tokenModel
 
@@ -120,7 +125,7 @@ class ModelHelpers
       request.body.password
     ]
 
-    console.log 'in getUser (username: ' + credentials.username + ', password: ' + credentials.password + ')'
+    debug "in getUser (username: #{ credentials.username }, password: #{ credentials.password })"
 
     User.findOne credentials
 
@@ -130,7 +135,7 @@ class ModelHelpers
   # @see https://tools.ietf.org/html/rfc6749#section-6
   ###
   revokeRefreshToken: (token) ->
-    console.log 'in revokeRefreshToken (token: ' + token + ')'
+    debug "in revokeRefreshToken (token: #{ token })"
 
     RefreshToken = loopback.getModel @refreshModel
 
@@ -141,7 +146,9 @@ class ModelHelpers
   ###
 
   saveRefreshToken: (token, appId, expires, userId) ->
-    console.log 'in saveRefreshToken (token: ' + token + ', appId: ' + appId + ', userId: ' + userId + ', expires: ' + expires + ')'
+    userId = userId.replace /\"/g, ''
+
+    debug "in saveRefreshToken (token: #{ token }, appId: #{ appId }, userId: #{ userId }, expires: #{ expires })"
 
     RefreshToken = loopback.getModel @refreshModel
 
@@ -162,14 +169,14 @@ class ModelHelpers
 
     refreshToken = request.body.refresh_token
 
-    console.log 'in getRefreshToken (refreshToken: ' + refreshToken + ')'
+    debug "in getRefreshToken (refreshToken: #{ refreshToken })"
 
     RefreshToken = loopback.getModel @refreshModel
 
     RefreshToken.findOne { refreshToken: refreshToken }
 
   getClientApplicationByKey: (clientId, clientKey) ->
-    console.log 'in getClient (appId: ' + clientId + ', clientKey: ' + clientKey + ')'
+    debug "in getClient (appId: #{ clientId }, clientKey: #{ clientKey })"
 
     ClientApplication = loopback.getModel @appModel
 
@@ -183,14 +190,14 @@ class ModelHelpers
     ClientApplication.findOne clientData
 
   getClientApplicationById: (clientId) ->
-    console.log 'in getClientApplication (appId: ' + clientId + ')'
+    debug "in getClientApplication (appId: #{ clientId })"
 
     ClientApplication = loopback.getModel @appModel
 
     ClientApplication.findById clientId
 
   setAccessTokenContext: (request, accessToken) ->
-    console.log 'in setAccessTokenContext (accessToken: ' + accessToken + ')'
+    debug "in setAccessTokenContext (accessToken: #{ JSON.stringify accessToken })"
 
     request.accessToken = accessToken
 
@@ -200,12 +207,12 @@ class ModelHelpers
       ctx.set 'accessToken', accessToken
 
   checkAccessTokenContext: (request) ->
-    console.log 'in checkAccessTokenContext'
-
     ctx = loopback.getCurrentContext()
 
     if ctx
       token = ctx.get 'accessToken'
+
+    debug "in checkAccessTokenContext (token: #{ JSON.stringify token }, requestToken: #{ request.accessToken })"
 
     token or request.accessToken
 

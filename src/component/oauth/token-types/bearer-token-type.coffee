@@ -37,7 +37,7 @@ class BearerTokenType extends AbstractTokenType
     object
 
   @getTokenFromRequest: (request) ->
-    headerToken = request.get 'Authorization'
+    headerToken = request.get 'authorization'
     queryToken = request.query?.access_token
     bodyToken = request.body?.access_token
 
@@ -62,7 +62,7 @@ class BearerTokenType extends AbstractTokenType
   ###
 
   @getTokenFromRequestHeader: (request) ->
-    token = request.get 'Authorization'
+    token = request.get 'authorization'
     matches = token.match /Bearer\s(\S+)/
 
     if not matches

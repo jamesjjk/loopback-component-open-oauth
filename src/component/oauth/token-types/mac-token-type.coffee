@@ -45,10 +45,10 @@ class MacTokenType extends AbstractTokenType
     object
 
   @getTokenFromRequest: (request) ->
-    headerToken = request.get 'Authorization'
+    headerToken = request.get 'authorization'
 
     if headerToken
-      return @constructor.getTokenFromRequestHeader request
+      return @getTokenFromRequestHeader request
 
     return
 
@@ -59,7 +59,7 @@ class MacTokenType extends AbstractTokenType
   ###
 
   @getTokenFromRequestHeader: (request) ->
-    header = request.get 'Authorization'
+    header = request.get 'authorization'
 
     if header.substring 0, 4 isnt 'MAC '
       return

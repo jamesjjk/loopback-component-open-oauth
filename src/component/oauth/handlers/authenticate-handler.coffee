@@ -2,6 +2,7 @@
 # Module dependencies.
 ###
 
+debug = require('debug')('loopback:oauth:handler:auth')
 Promise = require 'bluebird'
 
 { Request } = require '../request'
@@ -19,6 +20,7 @@ Promise = require 'bluebird'
 
 BearerTokenType = require '../token-types/bearer-token-type'
 MacTokenType = require '../token-types/mac-token-type'
+ApplicationTokenType = require '../token-types/application-token-type'
 
 ###*
 # Authenticate Handler.
@@ -93,13 +95,18 @@ class exports.AuthenticateHandler
 
   getTokenFromRequest: (request) ->
     fns = [
+      ApplicationTokenType.getTokenFromRequest(request)
       BearerTokenType.getTokenFromRequest(request)
       MacTokenType.getTokenFromRequest(request)
     ]
 
     Promise.all fns
       .bind this
-      .spread (bearerToken, macToken) ->
+      .spread (appToken, bearerToken, macToken) ->
+        if appToken
+          @modelHelpers.setAccessTokenContext request, appToken
+          return
+
         if not bearerToken or macToken
           #throw new UnauthorizedRequestError 'NOAUTH'
           return
@@ -207,6 +214,6 @@ class exports.AuthenticateHandler
       request.url = request.url.replace(new RegExp('/' + currentUserLiteral + '(/|$|\\?)', 'g'), '/' + accessToken.userId + '$1')
 
       if request.url isnt urlBeforeRewrite
-        console.log 'request.url has been rewritten from %s to %s', urlBeforeRewrite, request.url
+        debug 'request.url has been rewritten from %s to %s', urlBeforeRewrite, request.url
 
     return
