@@ -18,6 +18,15 @@ class ModelHelpers
       )
       """
 
+  @getModelByType: (models, type) ->
+    modelType = loopback.getModel type
+
+    for m of models
+      if models[m].prototype instanceof modelType
+        return models[m].definition.name
+
+    modelType
+
   getAccessToken: (bearerToken) ->
     console.log 'in getAccessToken (bearerToken: ' + bearerToken + ')'
 
