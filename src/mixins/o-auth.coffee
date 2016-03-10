@@ -70,6 +70,7 @@ module.exports = (Model, options) ->
       modelHelpers: modelHelpers
       currentUserLiteral: currentUserLiteral or 'me'
       allowEmptyState: allowEmptyState or true
+      accessTokenLifetime: accessTokenLifetime or 60 * 60
       authorizationCodeLifetime: authorizationCodeLifetime or 5 * 60
 
     new AuthorizeHandler authorizeOptions

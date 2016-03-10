@@ -3,6 +3,7 @@ debug = require('debug')('loopback:oauth:helpers')
 loopback = require 'loopback'
 validate = require './validator/is'
 validateScope = require './validator/scope'
+remap = require './utils/map'
 
 { promisify, resolve } = require 'bluebird'
 { randomBytes, createHash } = require 'crypto'
@@ -19,6 +20,51 @@ class ModelHelpers
       RefreshToken: #{ @refreshModel }
       )
       """
+
+  lookupUser: (req, info) ->
+    defer = q.defer()
+
+    defer.resolve {}
+
+    defer.promise
+
+  determineProvider: (request) ->
+    defer = q.defer()
+
+    id = request.params.provider or request.body.provider
+    providers = loopback.get 'auth-providers'
+
+    provider = providers[id]
+
+    if provider
+      promise.resolve provider
+    else
+      promise.reject null
+
+    defer.promise
+
+  connectUser: (user, provider, auth, info) ->
+    UserMember = loopback.getModel @userModel
+
+    data =
+      providers: {}
+      lastProvider: provider.id
+
+    data.providers[provider.id] =
+      provider: provider.id
+      protocol: provider.protocol
+      auth: auth
+      info: info
+
+    if user
+      if provider.refresh_userinfo
+        remap provider.mapping, info, data
+
+      return user.updateAttributes data
+    else
+      remap provider.mapping, info, data
+
+      return UserMember.create data
 
   @getModelByType: (models, type) ->
     modelType = loopback.getModel type

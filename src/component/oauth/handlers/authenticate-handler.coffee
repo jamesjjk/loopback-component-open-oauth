@@ -34,9 +34,6 @@ class exports.AuthenticateHandler
     if @scope and @addAuthorizedScopesHeader is undefined
       throw new InvalidArgumentError 'AUTHSCOPEHEADER'
 
-    if @scope and not @modelHelpers.validateScope
-      throw new InvalidArgumentError 'VALIDSCOPE'
-
     if typeof @currentUserLiteral is 'string'
       @currentUserLiteral = @currentUserLiteral.replace /[.*+?^${}()|[\]\\]/g, '\\$&'
 

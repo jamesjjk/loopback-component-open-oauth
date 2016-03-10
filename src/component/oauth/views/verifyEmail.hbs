@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Verify email | Identity Management</title>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/stylesheets/app.css">
+    <link rel="stylesheet" href="{{'//fonts.googleapis.com/css?family=Roboto:400,100,100italic,400italic,700,700italic|Raleway:400,100,600,300|Playfair}}{{Display}}{{SC:900,400'}}">
+</head>
+
+<body>
+    <div class="authform">
+        <div class="panel">
+            {{#if error}}
+            <div class="error">{{error}}</div>
+            {{else}}
+            <div>Your e-mail has now been verified!</div>
+            {{#if signin}}
+            <div>You may now continue to sign in to {{signin.client.client_name}}.
+                <a href="{{signin.url}}" class="button">Continue to sign in</a>
+            </div>
+            {{/if}} {{/if}}
+        </div>
+    </div>
+</body>
+
+</html>
+

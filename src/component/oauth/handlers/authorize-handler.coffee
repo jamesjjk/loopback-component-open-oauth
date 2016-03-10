@@ -37,8 +37,8 @@ responseTypes =
 ###
 
 class exports.AuthorizeHandler
-  constructor: (options = {}) ->
-    { @authenticateHandler, @authorizationCodeLifetime, @allowEmptyState, @modelHelpers } = options
+  constructor: (@options) ->
+    { @authenticateHandler, @authorizationCodeLifetime, @allowEmptyState, @modelHelpers } = @options
 
     if @authenticateHandler and not @authenticateHandler.handle
       throw new InvalidArgumentError 'HANDLE'
@@ -70,50 +70,30 @@ class exports.AuthorizeHandler
     Promise.all fns
       .bind @
       .spread (authorizationCode, expiresAt, client, user) ->
-        uri = @getRedirectUri request, client
+        scope = @getScope request
+        state = @getState request
 
-        scope = undefined
-        state = undefined
+        responseType = @getResponseType request, client
+
+        uri = @getRedirectUri request, client
 
         Promise.bind @
           .then ->
-            scope = @getScope request
-            state = @getState request
-            @saveAuthorizationCode authorizationCode, expiresAt, scope, client, uri, user
+            responseType.handle request, client, user, uri, scope
           .then (code) ->
-            responseType = @getResponseType request, code
             redirectUri = @buildSuccessRedirectUri uri, responseType
-            @updateResponse response, redirectUri, state
+            @updateResponse response, redirectUri, responseType, state
             code
           .catch (e) ->
             if not e instanceof OAuthError
               e = new ServerError e
 
-            redirectUri = @buildErrorRedirectUri uri, e
+            redirectUri = @buildErrorRedirectUri uri, responseType, e
 
-            @updateResponse response, redirectUri, state
+            @updateResponse response, redirectUri, responseType, state
 
             throw e
             return
-
-  ###*
-  # Generate authorization code.
-  ###
-
-  generateAuthorizationCode: ->
-    if @modelHelpers.generateAuthorizationCode
-      return @modelHelpers.generateAuthorizationCode()
-
-    @modelHelpers.generateRandomToken()
-
-  ###*
-  # Get authorization code lifetime.
-  ###
-
-  getAuthorizationCodeLifetime: ->
-    expires = new Date
-    expires.setSeconds expires.getSeconds() + @authorizationCodeLifetime
-    expires
 
   ###*
   # Get the client from the model.
@@ -199,25 +179,6 @@ class exports.AuthorizeHandler
     request.body.redirect_uri or request.query.redirect_uri or client.redirectURIs[0]
 
   ###*
-  # Save authorization code.
-  ###
-
-  saveAuthorizationCode: (authorizationCode, expiresAt, scope, client, redirectUri, user) ->
-    userId = user.__data.id
-
-    code =
-      id: authorizationCode
-      expiresAt: expiresAt
-      clientId: client.id
-      userId: userId
-      redirectURI: redirectUri
-
-    if scope
-      code.scopes = [ scope ]
-
-    @modelHelpers.saveAuthorizationCode code
-
-  ###*
   # Get response type.
   ###
 
@@ -232,25 +193,26 @@ class exports.AuthorizeHandler
 
     Type = responseTypes[responseType]
 
-    new Type code.id
+    new Type @options
 
   ###*
   # Build a successful response that redirects the user-agent to the client-provided url.
   ###
 
   buildSuccessRedirectUri: (redirectUri, responseType) ->
-    responseType.buildRedirectUri redirectUri
+    uri = url.parse(redirectUri)
+    responseType.buildRedirectUri uri
 
   ###*
   # Build an error response that redirects the user-agent to the client-provided url.
   ###
 
-  buildErrorRedirectUri: (redirectUri, error) ->
-    uri = url.parse redirectUri
-    uri.query = error: error.name
+  buildErrorRedirectUri: (redirectUri, responseType, error) ->
+    uri = url.parse redirectUrl
+    uri = responseType.setRedirectUriParam uri, 'error', error.name
 
     if error.message
-      uri.query.error_description = error.message
+      uri = responseType.setRedirectUriParam uri, 'error_description', error.message
 
     uri
 
@@ -258,11 +220,9 @@ class exports.AuthorizeHandler
   # Update response with the redirect uri and the state parameter, if available.
   ###
 
-  updateResponse: (response, redirectUri, state) ->
-    redirectUri.query = redirectUri.query or {}
-
+  updateResponse: (response, redirectUri, responseType, state) ->
     if state
-      redirectUri.query.state = state
+      redirectUri = responseType.setRedirectUriParam redirectUri, 'state', state
 
     response.redirect url.format(redirectUri)
 

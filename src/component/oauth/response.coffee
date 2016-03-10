@@ -3,14 +3,19 @@
 ###
 
 class exports.Response
-  constructor: ({ @body, headers }) ->
+  constructor: (options) ->
+    { @body, headers } = options
+
+    @headers = {}
     @status = 200
 
-    # Store the headers in lower case.
-    @headers = {}
-
     for field of headers
-      @headers[field.toLowerCase()] = headers[field]
+      if headers.hasOwnProperty(field)
+        @headers[field.toLowerCase()] = options.headers[field]
+
+    for property of options
+      if options.hasOwnProperty(property) and !@[property]
+        @[property] = options[property]
 
     return
 

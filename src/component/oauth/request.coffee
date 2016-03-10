@@ -11,7 +11,9 @@ typeis = require 'type-is'
 ###
 
 class exports.Request
-  constructor: ({ headers, @body, @method, @query }) ->
+  constructor: (options) ->
+    { headers, @body, @method, @query } = options
+
     if not headers
       throw new InvalidArgumentError 'HEADERS'
 
@@ -21,11 +23,15 @@ class exports.Request
     if not @query
       throw new InvalidArgumentError 'QUERY'
 
-    # Store the headers in lower case.
     @headers = {}
 
     for field of headers
-      @headers[field.toLowerCase()] = headers[field]
+      if headers.hasOwnProperty(field)
+        @headers[field.toLowerCase()] = options.headers[field]
+
+    for property of options
+      if options.hasOwnProperty(property) and !@[property]
+        @[property] = options[property]
 
     return
 

@@ -2,8 +2,11 @@
 
 cors = require 'cors'
 path = require 'path'
-url = require 'url'
-fs  = require 'fs'
+url  = require 'url'
+fs   = require 'fs'
+hbs  = require 'hbs'
+
+providers = require '../../providers'
 
 { defaults } = require 'lodash'
 
@@ -38,7 +41,16 @@ module.exports = (loopbackApplication, options) ->
   options = defaults {}, options, mountPath: '/oauth'
 
   loopbackApplication.use options.mountPath, routes(loopbackApplication, options)
+
+  loopbackApplication.set 'view engine', 'hbs'
+
+  loopbackApplication.set 'loopback-providers', providers
   loopbackApplication.set 'loopback-component-open-oauth', options
+
+  loopback = loopbackApplication.loopback
+
+  loopbackApplication.use loopback.static path.join(process.cwd(), 'public')
+  loopbackApplication.use loopback.static path.join(__dirname, '..', 'public')
 
   loopbackApplication.once 'started', ->
     baseUrl = loopbackApplication.get('url').replace /\/$/, ''

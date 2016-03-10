@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Verify email | Identity Management</title>
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/stylesheets/app.css">
+    <link rel="stylesheet" href="{{'//fonts.googleapis.com/css?family=Roboto:400,100,100italic,400italic,700,700italic|Raleway:400,100,600,300|Playfair}}{{Display}}{{SC:900,400'}}">
+</head>
+
+<body>
+    <div class="authform">
+        <div class="panel">
+            {{#if error}}
+            <div class="error">{{error}}</div>
+            {{/if}} {{#if message}}
+            <div class="message">{{message}}</div>
+            {{/if}}
+            <h3>Please check your email.</h3>
+            <p>You should have received a message with a link to verify your email address. Click the link to complete the verification process.
+            </p>
+            <p>At most, it should take several minutes to receive your email.</p>
+            <p>If you're having trouble receiving it, make sure that {{from}} is in your contacts/whitelist.</p>
+            <p>Still having trouble?</p>
+            <div>
+                <a href="{{resendURL}}" class="button full-width">Resend e-mail verification</a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+

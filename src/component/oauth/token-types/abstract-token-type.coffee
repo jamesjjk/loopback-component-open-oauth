@@ -25,5 +25,8 @@ class exports.AbstractTokenType
     if @refreshTokenExpiresAt and !(@refreshTokenExpiresAt instanceof Date)
       throw new InvalidArgumentError 'REFRESHTOKENEXPIRESAT'
 
+    if @accessTokenExpiresAt
+      @accessTokenLifetime = Math.floor((@accessTokenExpiresAt - (new Date)) / 1000)
+
     return
 

@@ -61,3 +61,10 @@ class exports.AbstractGrantType
       throw new InvalidArgumentError 'SCOPE'
 
     request.body.scope
+
+  validateScope: (user, client, scope) ->
+    validateScope user, client, scope
+      .then (isValid) ->
+        if not isValid
+          throw new InvalidScopeError('Invalid scope: Requested scope is invalid')
+        isValid
